@@ -1,0 +1,141 @@
+import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
+
+import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.io.File;
+import java.io.FileOutputStream;
+
+public class CV {
+    private JPanel cvPanel;
+    private JTextField name, address, contact, email, skills1, skills2, skills3, skills4, college, qualiA, qualiB, location;
+    private JComboBox<String> work;
+    private JButton SELECTIMAGEButton, GENERATERESUMEButton;
+    private JLabel img;
+    private JFrame frame;
+
+    public CV() {
+        frame = new JFrame("CV Generator");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        cvPanel = new JPanel(new GridLayout(15, 2, 5, 5));
+
+        // Initialize Components
+        name = new JTextField(); address = new JTextField(); contact = new JTextField();
+        email = new JTextField(); skills1 = new JTextField(); skills2 = new JTextField();
+        skills3 = new JTextField(); skills4 = new JTextField(); college = new JTextField();
+        qualiA = new JTextField(); qualiB = new JTextField(); location = new JTextField();
+        work = new JComboBox<>(new String[]{"No Experience", "1-2 years", "3-5 years", "More than 5 years"});
+        SELECTIMAGEButton = new JButton("Select Image");
+        GENERATERESUMEButton = new JButton("Generate Resume");
+        img = new JLabel();
+
+        // Add Components to Panel
+        cvPanel.add(new JLabel("Name:")); cvPanel.add(name);
+        cvPanel.add(new JLabel("Address:")); cvPanel.add(address);
+        cvPanel.add(new JLabel("Contact:")); cvPanel.add(contact);
+        cvPanel.add(new JLabel("Email:")); cvPanel.add(email);
+        cvPanel.add(new JLabel("Skills:")); cvPanel.add(skills1);
+        cvPanel.add(new JLabel(" ")); cvPanel.add(skills2);
+        cvPanel.add(new JLabel(" ")); cvPanel.add(skills3);
+        cvPanel.add(new JLabel(" ")); cvPanel.add(skills4);
+        cvPanel.add(new JLabel("College:")); cvPanel.add(college);
+        cvPanel.add(new JLabel("Degree:")); cvPanel.add(qualiA);
+        cvPanel.add(new JLabel("Other Qualification:")); cvPanel.add(qualiB);
+        cvPanel.add(new JLabel("Work Experience:")); cvPanel.add(work);
+        cvPanel.add(new JLabel("Image Path:")); cvPanel.add(location);
+        cvPanel.add(SELECTIMAGEButton); cvPanel.add(img);
+        cvPanel.add(GENERATERESUMEButton);
+
+        frame.setContentPane(cvPanel);
+        frame.pack();
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+
+        SELECTIMAGEButton.addActionListener(e -> selectImage());
+        GENERATERESUMEButton.addActionListener(e -> generateResume());
+    }
+
+    private void selectImage() {
+        JFileChooser fileChooser = new JFileChooser();
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("*.IMAGE", "jpg", "png");
+        fileChooser.setFileFilter(filter);
+        int result = fileChooser.showOpenDialog(null);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedImage = fileChooser.getSelectedFile();
+            location.setText(selectedImage.getAbsolutePath());
+            img.setIcon(resizeImage(selectedImage.getAbsolutePath()));
+        }
+    }
+
+    private void generateResume() {
+        if (name.getText().isEmpty() || contact.getText().isEmpty() || address.getText().isEmpty() || email.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "PLEASE ENTER ALL DETAILS TO GENERATE CV");
+            return;
+        }
+        try {
+            //String desktopPath = System.getProperty("user.home");
+            String desktopPath =  "D:\\MyCV\\haibgfn.pdf";
+            System.out.println(desktopPath);
+            Document myDocument = new Document();
+            PdfWriter.getInstance(myDocument, new FileOutputStream(desktopPath));
+            myDocument.open();
+
+            // Add Image
+            if (!location.getText().isEmpty()) {
+                com.itextpdf.text.Image image = com.itextpdf.text.Image.getInstance(location.getText());
+                image.setAbsolutePosition(450f, 750f);
+                image.scaleAbsolute(100f, 100f);
+                myDocument.add(image);
+            }
+
+            // FIX: Explicitly specify com.itextpdf.text.Font to avoid ambiguity
+            myDocument.add(new Paragraph(name.getText(), new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 20, com.itextpdf.text.Font.BOLD, BaseColor.BLACK)));
+            myDocument.add(new Paragraph("------------------------------------------------------------------"));
+            myDocument.add(new Paragraph("CONTACT DETAILS", new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 12, com.itextpdf.text.Font.BOLD, BaseColor.BLUE)));
+            myDocument.add(new Paragraph("Email: " + email.getText()));
+            myDocument.add(new Paragraph("Phone: " + contact.getText()));
+            myDocument.add(new Paragraph("Address: " + address.getText()));
+            myDocument.add(new Paragraph("------------------------------------------------------------------"));
+
+            myDocument.add(new Paragraph("SKILLS", new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 12, com.itextpdf.text.Font.BOLD, BaseColor.BLUE)));
+            PdfPTable table = new PdfPTable(2);
+            table.addCell(skills1.getText()); table.addCell(skills2.getText());
+            table.addCell(skills3.getText()); table.addCell(skills4.getText());
+            myDocument.add(table);
+            myDocument.add(new Paragraph("------------------------------------------------------------------"));
+
+            myDocument.add(new Paragraph("QUALIFICATIONS", new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 12, com.itextpdf.text.Font.BOLD, BaseColor.BLUE)));
+            myDocument.add(new Paragraph("College: " + college.getText()));
+            myDocument.add(new Paragraph("Degree: " + qualiA.getText()));
+            myDocument.add(new Paragraph("Other: " + qualiB.getText()));
+            myDocument.add(new Paragraph("------------------------------------------------------------------"));
+
+            myDocument.add(new Paragraph("WORK EXPERIENCE", new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 12, com.itextpdf.text.Font.BOLD, BaseColor.BLUE)));
+            myDocument.add(new Paragraph("Experience: " + work.getSelectedItem().toString()));
+            myDocument.add(new Paragraph("------------------------------------------------------------------"));
+
+            myDocument.add(new Paragraph("REFERENCES", new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 12, com.itextpdf.text.Font.BOLD, BaseColor.BLUE)));
+            myDocument.add(new Paragraph("Available upon request"));
+
+            myDocument.close();
+            JOptionPane.showMessageDialog(null, "CV successfully generated at " + desktopPath);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
+        }
+    }
+
+    // Fixing the Image Ambiguity
+    public ImageIcon resizeImage(String path) {
+        ImageIcon imgIcon = new ImageIcon(path);
+        java.awt.Image img = imgIcon.getImage().getScaledInstance(100, 100, java.awt.Image.SCALE_SMOOTH);
+        return new ImageIcon(img);
+    }
+
+    public static void main(String[] args) 
+    {
+        new CV();
+    }
+}
